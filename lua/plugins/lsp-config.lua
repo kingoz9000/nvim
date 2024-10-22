@@ -6,7 +6,12 @@ return {
 			require("mason").setup()
 		end,
 	},
-	{
+  {
+    "mfussenegger/nvim-dap",
+    "rcarriga/nvim-dap-ui",
+    "nvim-neotest/nvim-nio",
+  },
+{
 		"williamboman/mason-lspconfig.nvim",
 		lazy = false,
 		opts = {
