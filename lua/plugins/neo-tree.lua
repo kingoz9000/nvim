@@ -9,5 +9,17 @@ return {
   config = function()
     vim.keymap.set("n", "<C-n>", ":Neotree toggle <CR>", {})
     vim.keymap.set("n", "<leader>bf", ":Neotree buffers reveal float<CR>", {})
+
+    require("neo-tree").setup({
+      event_handlers = {
+        {
+          event = "file_opened",
+          handler = function()
+            require("neo-tree.command").execute({ action = "close" })
+          end,
+        },
+      }
+    })
   end,
 }
+         
