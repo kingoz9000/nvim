@@ -1,62 +1,75 @@
 return {
+  -- nvim-dap setup
   {
     "mfussenegger/nvim-dap",
-    lazy = true, -- Optional, to load it on demand
-    keys = {
-      { "<F5>", function() require("dap").continue() end, desc = "Start/Continue debugging" },
-      { "<F6>", function() require("dap").step_over() end, desc = "Step over" },
-      { "<F7>", function() require("dap").step_into() end, desc = "Step into" },
-      { "<F8>", function() require("dap").step_out() end, desc = "Step out" },
-      { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle breakpoint" },
-      { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: ")) end, desc = "Set conditional breakpoint" },
-    },
+    lazy = true,
     config = function()
       local dap = require("dap")
-      
-      -- Setup the Python adapter
-dap.adapters.python = {
-  type = 'executable',
-  command = 'python',  -- System Python interpreter with debugpy installed
-  args = { '-m', 'debugpy.adapter' },
-}
-     
-      -- Python launch configuration
+
+      -- Basic key mappings for debugging controls
+      vim.keymap.set("n", "<F5>", dap.continue, { desc = "Start/Continue debugging" })
+      vim.keymap.set("n", "<F6>", dap.step_over, { desc = "Step over" })
+      vim.keymap.set("n", "<F7>", dap.step_into, { desc = "Step into" })
+      vim.keymap.set("n", "<F8>", dap.step_out, { desc = "Step out" })
+      vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "Toggle breakpoint" })
+      vim.keymap.set("n", "<leader>dc", dap.clear_breakpoints, { desc = "Clear breakpoints" })
+      vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { desc = "Toggle REPL" })
+      vim.keymap.set("n", "<leader>dl", dap.run_last, { desc = "Run last" })
+
+      -- Python Debugger Configuration using /usr/bin/python3
+      dap.adapters.python = {
+        type = "executable",
+        command = "/usr/bin/python3",  -- Path to Python interpreter with debugpy installed
+        args = { "-m", "debugpy.adapter" },
+      }
       dap.configurations.python = {
         {
-          type = 'python',
-          request = 'launch',
-          name = 'Launch file',
-          program = "${file}",  -- Debug the current file
+          type = "python",
+          request = "launch",
+          name = "Launch file",
+          program = "${file}",  -- This will launch the current file
           pythonPath = function()
-            -- Automatically use the virtual environment if available
-            local venv_path = os.getenv("VIRTUAL_ENV")
-            if venv_path then
-              return venv_path .. "/bin/python"
-            else
-              return "python"  -- Fall back to system Python
-            end
+            return "/usr/bin/python3"  -- Ensure it uses the global Python interpreter
           end,
         },
       }
     end,
   },
+
+  -- nvim-dap-python setup
   {
     "mfussenegger/nvim-dap-python",
     dependencies = { "mfussenegger/nvim-dap" },
     lazy = true,
     config = function()
-      require("dap-python").setup("~/.virtualenvs/debugpy/bin/python") -- Update the path if needed
+      require("dap-python").setup("/usr/bin/python3") -- Path to Python interpreter with debugpy installed
     end,
   },
+
+  -- nvim-dap-ui setup
   {
     "rcarriga/nvim-dap-ui",
     dependencies = { "mfussenegger/nvim-dap" },
-    lazy = true,
     config = function()
       local dap, dapui = require("dap"), require("dapui")
-      dapui.setup()
 
-      -- Automatically open/close DAP UI on debug start/end
+      -- Setup dap-ui with improved defaults
+      dapui.setup({
+        layouts = {
+          {
+            elements = { "scopes", "breakpoints", "stacks", "watches" },
+            size = 40, -- Adjust width for your display
+            position = "left",
+          },
+          {
+            elements = { "repl", "console" },
+            size = 10, -- Adjust height for better visibility
+            position = "bottom",
+          },
+        },
+      })
+
+      -- Automatically open and close dap-ui with the lifecycle of dap events
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
       end
@@ -66,6 +79,10 @@ dap.adapters.python = {
       dap.listeners.before.event_exited["dapui_config"] = function()
         dapui.close()
       end
+
+      -- Keybindings to manually toggle dap-ui or evaluate expression
+      vim.keymap.set("n", "<leader>du", function() dapui.toggle() end, { desc = "Toggle Debugger UI" })
+      vim.keymap.set("n", "<leader>de", function() dapui.eval() end, { desc = "Evaluate expression under cursor" })
     end,
   },
 }
