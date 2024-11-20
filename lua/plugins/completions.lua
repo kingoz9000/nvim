@@ -12,7 +12,6 @@ return {
   },
   {
     "windwp/nvim-autopairs",
-
   },
   {
     "hrsh7th/nvim-cmp",
@@ -27,10 +26,12 @@ return {
             require("luasnip").lsp_expand(args.body)
           end,
         },
-        window = {
-          completion = cmp.config.window.bordered(),
-          documentation = cmp.config.window.bordered(),
-        },
+        sources = cmp.config.sources({
+          { name = "nvim_lsp" }, -- Enable LSP-based completion
+          { name = "luasnip" }, -- Enable snippets
+        }, {
+          { name = "buffer" }, -- Fallback to buffer-based suggestions
+        }),
         mapping = cmp.mapping.preset.insert({
           ["<C-b>"] = cmp.mapping.scroll_docs(-4),
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
@@ -38,13 +39,12 @@ return {
           ["<C-e>"] = cmp.mapping.abort(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
         }),
-        sources = cmp.config.sources({
-          { name = "nvim_lsp" },
-          { name = "luasnip" }, -- For luasnip users.
-        }, {
-          { name = "buffer" },
-        }),
+        window = {
+          completion = cmp.config.window.bordered(),
+          documentation = cmp.config.window.bordered(),
+        },
       })
     end,
   },
 }
+
